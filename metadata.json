@@ -1,0 +1,6 @@
+{
+  "name": "Gujarat Ride - Outstation & Local Cab Booking",
+  "description": "Book verified Sedan and Ertiga cabs across Gujarat. Instant fare calculation, one-way & round trip taxi service with WhatsApp booking confirmation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
