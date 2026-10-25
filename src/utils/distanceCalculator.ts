@@ -325,7 +325,7 @@ export function calculateTripFare(
           numberOfDays: 1,
           minimumKmApplied: false,
           isFixedFare: true,
-          tag: 'Fuel & Driver Allowance Included'
+          tag: 'All Inclusive Fixed Fare'
         };
       } else if (carType === 'ertiga') {
         const fixedFare = 2499;
@@ -341,7 +341,7 @@ export function calculateTripFare(
           numberOfDays: 1,
           minimumKmApplied: false,
           isFixedFare: true,
-          tag: 'Fuel & Driver Allowance Included'
+          tag: 'All Inclusive Fixed Fare'
         };
       }
     }

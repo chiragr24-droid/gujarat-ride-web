@@ -30,7 +30,8 @@ import {
   LOCAL_PRICING,
   calculateLocalPackageFare,
   calculateDrivingRoute,
-  estimateDuration
+  estimateDuration,
+  isVadodaraAhmedabadRoute
 } from '../utils/distanceCalculator';
 import { openWhatsApp } from '../utils/whatsappHelper';
 import { MapRouteView } from './MapRouteView';
@@ -618,7 +619,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         : '',
       `• *Total Estimated Fare:* ₹${params.fare.estimatedTotal.toLocaleString('en-IN')}`,
       params.tripType === 'one-way'
-        ? `Note: Fuel & Driver included. Toll, Parking & State Border Tax extra as per actuals.`
+        ? params.fare.isFixedFare
+          ? `Note: All Inclusive Fixed Fare (Tolls & Taxes Included).`
+          : `Note: Fuel & Driver included. Toll, Parking & State Border Tax extra as per actuals.`
         : `*Tag: ${params.fare.tag || (params.tripType === 'local' ? 'Fuel & Chauffeur Included (Toll/Parking extra)' : 'Toll & Parking Extra as per actuals')}*`,
       ``,
       params.notes?.trim() ? `📝 *Special Request:* ${params.notes.trim()}` : '',
@@ -1500,6 +1503,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {availableCars.map((car) => {
                 const isSelected = selectedCarId === car.id;
+                const isVadodaraAhmedabad = isVadodaraAhmedabadRoute(
+                  pickupCity || (pickupSearch ? { name: pickupSearch } : null),
+                  destinationCity || (destinationSearch ? { name: destinationSearch } : null)
+                );
+                const isOneWayFixedRoute = tripType === 'one-way' && isVadodaraAhmedabad && (car.id === 'sedan' || car.id === 'ertiga');
+
                 const carFare =
                   tripType === 'local'
                     ? calculateLocalPackageFare(car.id, localPackageId)
@@ -1571,6 +1580,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                             <div className="text-2xl sm:text-[26px] font-black text-slate-950 tracking-tight leading-none mt-0.5">
                               ₹{carFare.estimatedTotal.toLocaleString('en-IN')}
                             </div>
+                          ) : isOneWayFixedRoute ? (
+                            <div className="text-2xl sm:text-[26px] font-black text-slate-950 tracking-tight leading-none mt-0.5">
+                              ₹{(car.id === 'sedan' ? 1799 : 2499).toLocaleString('en-IN')}
+                            </div>
                           ) : (
                             <div className="text-xs font-semibold text-slate-500 mt-0.5">
                               Enter route to calculate
@@ -1585,9 +1598,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                               <span>✓ {LOCAL_PACKAGES.find((p) => p.id === localPackageId)?.label || 'Package'} Included</span>
                             </div>
                           ) : tripType === 'one-way' ? (
-                            <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200/90 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-xs">
-                              <span>✔ Fuel & Driver Allowance Included</span>
-                            </div>
+                            carFare?.isFixedFare || isOneWayFixedRoute ? (
+                              <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200/90 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-xs">
+                                <span>All Inclusive Fixed Fare</span>
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200/90 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-xs">
+                                <span>✔ Fuel & Driver Allowance Included</span>
+                              </div>
+                            )
                           ) : (
                             <div className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-900 border border-amber-200/90 px-2.5 py-1 rounded-md text-[11px] font-bold shadow-xs">
                               <span>✓ Toll & Parking Extra as per actuals</span>
@@ -1598,8 +1617,16 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
                       {/* One-way specific sub-note */}
                       {tripType === 'one-way' && (
-                        <div className="mb-2.5 py-1.5 px-2.5 bg-slate-100/90 border border-slate-200/80 rounded-xl text-[11px] font-medium text-slate-700 flex items-center gap-1.5">
-                          <span>⚡ Toll, Parking & State Border Entry Tax extra as per actual receipts / FASTag</span>
+                        <div className={`mb-2.5 py-1.5 px-2.5 rounded-xl text-[11px] font-medium flex items-center gap-1.5 ${
+                          carFare?.isFixedFare || isOneWayFixedRoute
+                            ? 'bg-emerald-50/70 border border-emerald-200/60 text-emerald-800'
+                            : 'bg-slate-100/90 border border-slate-200/80 text-slate-700'
+                        }`}>
+                          {carFare?.isFixedFare || isOneWayFixedRoute ? (
+                            <span>⚡ All Inclusive - Tolls & Taxes Included</span>
+                          ) : (
+                            <span>⚡ Toll, Parking & State Border Entry Tax extra as per actual receipts / FASTag</span>
+                          )}
                         </div>
                       )}
 
@@ -1858,6 +1885,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                       <span className="inline-flex items-center gap-1.5 text-amber-900 bg-amber-100/90 px-3 py-1.5 rounded-lg border border-amber-300">
                         Tag: Toll & Parking Extra as per actuals
                       </span>
+                    ) : fareResult.isFixedFare ? (
+                      <span className="inline-flex items-center gap-1.5 text-emerald-900 bg-emerald-100/90 px-3 py-1.5 rounded-lg border border-emerald-300">
+                        All Inclusive Fixed Fare (Tolls & Taxes Included)
+                      </span>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 text-emerald-900 bg-emerald-100/90 px-3 py-1.5 rounded-lg border border-emerald-300">
                         ✔ Fuel & Driver Allowance Included (Toll, Parking & State Tax Extra)
@@ -1879,6 +1910,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                       ? 'Fuel & Chauffeur Included (Toll & Parking extra)'
                       : tripType === 'round-trip'
                       ? 'Toll & Parking Extra as per actuals'
+                      : fareResult.isFixedFare
+                      ? 'All Inclusive - Tolls & Taxes Included'
                       : 'Fuel & Driver Allowance Included'}
                   </span>
                   <div className="mt-3 text-[11px] bg-slate-900 text-emerald-400 px-3 py-1 rounded-full font-medium flex items-center gap-1 border border-slate-800">

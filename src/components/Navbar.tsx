@@ -1,10 +1,5 @@
 import React from 'react';
-import { Phone, MessageCircle, Car } from 'lucide-react';
-import {
-  openWhatsApp,
-  getUniversalWhatsAppLink,
-  DEFAULT_BUSINESS_PHONE
-} from '../utils/whatsappHelper';
+import { Phone, Car } from 'lucide-react';
 
 interface NavbarProps {
   onBookClick?: () => void;
@@ -17,15 +12,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onFleetClick,
   onPackagesClick
 }) => {
-  const inquiryMessage =
-    'Hi Riddhi Travels, I would like to inquire about a GujaratRide cab booking';
-  const waUrl = getUniversalWhatsAppLink(DEFAULT_BUSINESS_PHONE, inquiryMessage);
-
-  const handleWhatsAppClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    openWhatsApp(DEFAULT_BUSINESS_PHONE, inquiryMessage);
-  };
-
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
       {/* Main Navigation Bar */}
@@ -98,14 +84,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>+91 9773203109</span>
           </a>
 
-          {/* Quick WhatsApp Chat */}
+          {/* Prominent Call Now Button */}
           <a
-            href={waUrl}
-            onClick={handleWhatsAppClick}
+            href="tel:+919773203109"
             className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 transition-transform active:scale-95 cursor-pointer"
           >
-            <MessageCircle className="w-4 h-4 fill-white" />
-            <span>WhatsApp Us</span>
+            <Phone className="w-4 h-4 fill-white" />
+            <span>Call Now</span>
           </a>
 
           {/* Book Now Button for mobile header */}
